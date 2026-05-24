@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<head>
+    <title>Tracking Delivery Order</title>
+ 
+    <!-- Menghubungkan Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <!-- Menghubungkan file CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+
+        /* Style box */
+        .box {
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+
+        /* Style input dan tombol */
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        /* Style tombol */
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Style list */
+        ul {
+            margin-top: 10px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<!-- Vue -->
+<div id="app">
+
+    <h1>Tracking Delivery Order</h1>
+    <a href="index.html">← Kembali</a>
+    
+    <!-- FORM PENCARIAN DO -->
+    <div class="box">
+
+        <h2>Cari Delivery Order</h2>
+
+        <!-- Input nomor DO -->
+        <input
+            type="text"
+            placeholder="Masukkan Nomor DO"
+            v-model="cariNomor">
+
+        <!-- Tombol cari -->
+        <button @click="cariDO">
+
+            Cari
+
+        </button>
+
+    </div>
+
+    <!-- HASIL TRACKING -->
+    <div
+        class="box"
+        v-if="hasilTracking">
+
+        <h2>Hasil Tracking</h2>
+
+        <!-- Menampilkan data DO -->
+        <p><b>Nomor DO:</b> {{ hasilTracking.nomorDO }}</p>
+
+        <p><b>NIM:</b> {{ hasilTracking.nim }}</p>
+
+        <p><b>Nama:</b> {{ hasilTracking.nama }}</p>
+
+        <p><b>Status:</b> {{ hasilTracking.status }}</p>
+
+        <p><b>Ekspedisi:</b> {{ hasilTracking.ekspedisi }}</p>
+
+        <p><b>Tanggal Kirim:</b> {{ hasilTracking.tanggalKirim }}</p>
+
+        <p><b>Paket:</b> {{ hasilTracking.paket }}</p>
+
+        <p><b>Total:</b> Rp {{ hasilTracking.total }}</p>
+
+        <!-- Riwayat perjalanan -->
+        <h3>Riwayat Pengiriman</h3>
+
+        <ul>
+
+            <!-- Menampilkan riwayat tracking -->
+            <li
+                v-for="(item, index) in hasilTracking.perjalanan"
+                :key="index">
+
+                {{ item.waktu }} - {{ item.keterangan }}
+
+            </li>
+
+        </ul>
+
+    </div>
+
+    <!-- LIST DELIVERY ORDER -->
+    <div class="box">
+    
+        <h2>List Delivery Order</h2>
+    
+        <table class="tracking-table">
+
+    <thead>
+
+        <tr>
+
+            <th>Nomor DO</th>
+
+            <th>Nama Mahasiswa</th>
+
+            <th>Paket</th>
+
+            <th>Ekspedisi</th>
+
+            <th>Tanggal Kirim</th>
+
+            <th>Biaya</th>
+
+            <th>Status</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        <tr
+            v-for="(item, key) in tracking"
+            :key="key">
+
+            <td>{{ item.nomorDO }}</td>
+
+            <td>{{ item.nama }}</td>
+
+            <td>{{ item.paket }}</td>
+
+            <td>{{ item.ekspedisi }}</td>
+
+            <td>{{ item.tanggalKirim }}</td>
+
+            <td>
+                Rp {{ item.total }}
+            </td>
+
+            <td>
+
+                <span
+                    v-if="item.status == 'Dikirim'"
+                    style="color: green; font-weight: bold;">
+
+                    ✅ {{ item.status }}
+
+                </span>
+
+                <span
+                    v-else-if="item.status == 'Dalam Perjalanan'"
+                    style="color: orange; font-weight: bold;">
+
+                    🚚 {{ item.status }}
+
+                </span>
+
+                <span
+                    v-else
+                    style="color: blue; font-weight: bold;">
+
+                    📦 {{ item.status }}
+
+                </span>
+
+            </td>
+
+        </tr>
+
+    </tbody>
+
+</table>
+    
+    </div>
+    
+    <!-- FORM TAMBAH DO -->
+    <div class="box">
+
+        <h2>Tambah Delivery Order</h2>
+
+        <!-- Menampilkan nomor DO otomatis -->
+        <p>
+
+            <b>Nomor DO:</b>
+
+            {{ nomorDOBaru }}
+
+        </p>
+
+        <!-- Input NIM -->
+        <input
+            type="text"
+            placeholder="NIM"
+            v-model="form.nim">
+
+        <!-- Input nama -->
+        <input
+            type="text"
+            placeholder="Nama"
+            v-model="form.nama">
+
+        <br>
+
+        <!-- Pilihan ekspedisi -->
+        <select v-model="form.ekspedisi">
+
+            <option value="">
+                Pilih Ekspedisi
+            </option>
+
+            <!-- Menampilkan daftar ekspedisi -->
+            <option
+                v-for="item in pengirimanList"
+                :key="item.kode"
+                :value="item.nama">
+
+                {{ item.nama }} - {{item.durasi}}
+
+            </option>
+
+        </select>
+
+        <!-- Pilihan paket -->
+        <select v-model="form.paket">
+
+            <option value="">
+                Pilih Paket
+            </option>
+
+            <!-- Menampilkan daftar paket -->
+            <option
+                v-for="item in paketList"
+                :key="item.kode"
+                :value="item.kode">
+
+                {{ item.kode }} - {{ item.nama }}
+
+            </option>
+
+        </select>
+
+        <!-- DETAIL PAKET -->
+        <div v-if="selectedPaket">
+
+            <h3>Isi Paket</h3>
+
+            <ul>
+
+                <!-- Menampilkan isi paket -->
+                <li
+                    v-for="(item, index) in selectedPaket.isi"
+                    :key="index">
+
+                    {{ item }}
+
+                </li>
+
+            </ul>
+
+        </div>
+
+        <br>
+
+        <!-- Input tanggal kirim -->
+        <input
+            type="date"
+            v-model="form.tanggalKirim">
+
+        <!-- Menampilkan total harga -->
+        <p>
+
+            <b>Total Harga:</b>
+
+            Rp {{ totalHarga }}
+
+        </p>
+
+        <!-- Tombol tambah DO -->
+        <button @click="tambahDO">
+
+            Tambah DO
+
+        </button>
+
+    </div>
+
+</div>
+
+<!-- Memanggil data aplikasi -->
+<script src="js/dataBahanAjar.js"></script>
+
+<!-- Memanggil logika Vue -->
+<script src="js/tracking-app.js"></script>
+
+</body>
+</html>
